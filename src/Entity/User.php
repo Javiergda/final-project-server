@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -41,6 +43,16 @@ class User
      * @ORM\Column(type="string", length=10)
      */
     private $user_type;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Student::class, mappedBy="user")
+     */
+    private $students;
+
+    public function __construct()
+    {
+        $this->students = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -103,6 +115,36 @@ class User
     public function setUserType(string $user_type): self
     {
         $this->user_type = $user_type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Student[]
+     */
+    public function getStudents(): Collection
+    {
+        return $this->students;
+    }
+
+    public function addStudent(Student $student): self
+    {
+        if (!$this->students->contains($student)) {
+            $this->students[] = $student;
+            $student->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStudent(Student $student): self
+    {
+        if ($this->students->removeElement($student)) {
+            // set the owning side to null (unless already changed)
+            if ($student->getUser() === $this) {
+                $student->setUser(null);
+            }
+        }
 
         return $this;
     }

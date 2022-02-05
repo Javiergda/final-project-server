@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\StudentRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -28,7 +30,8 @@ class Student
     private $surname;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="students")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $user;
 
@@ -51,6 +54,16 @@ class Student
      * @ORM\Column(type="string", length=10)
      */
     private $letter;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Daily::class, mappedBy="student")
+     */
+    private $dailies;
+
+    public function __construct()
+    {
+        $this->dailies = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -81,12 +94,12 @@ class Student
         return $this;
     }
 
-    public function getUser(): ?int
+    public function getUser(): ?User
     {
         return $this->user;
     }
 
-    public function setUser(int $user): self
+    public function setUser(?User $user): self
     {
         $this->user = $user;
 
@@ -137,6 +150,36 @@ class Student
     public function setLetter(string $letter): self
     {
         $this->letter = $letter;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Daily[]
+     */
+    public function getDailies(): Collection
+    {
+        return $this->dailies;
+    }
+
+    public function addDaily(Daily $daily): self
+    {
+        if (!$this->dailies->contains($daily)) {
+            $this->dailies[] = $daily;
+            $daily->setStudent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDaily(Daily $daily): self
+    {
+        if ($this->dailies->removeElement($daily)) {
+            // set the owning side to null (unless already changed)
+            if ($daily->getStudent() === $this) {
+                $daily->setStudent(null);
+            }
+        }
 
         return $this;
     }
