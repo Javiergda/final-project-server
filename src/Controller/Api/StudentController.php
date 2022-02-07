@@ -2,8 +2,10 @@
 
 namespace App\Controller\Api;
 
+use App\Entity\Daily;
 use App\Entity\Student;
 use App\Repository\StudentRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,7 +40,7 @@ class StudentController extends AbstractController
                 'id' => $student->getId(),
                 'name' => $student->getName(),
                 'surname' => $student->getSurname(),
-                'user_email' => $student->getUserEmail(),
+                'user_id' => $student->getUser(),
                 'birth_date' => $student->getBirthDate(),
                 'phone1' => $student->getPhone1(),
                 'phone2' => $student->getPhone2(),
@@ -51,15 +53,17 @@ class StudentController extends AbstractController
     /**
      * @Route("", methods={"POST"})
      */
-    public function add(Request $request)
+    public function add(Request $request, UserRepository $userRepository)
     {
         $content = json_decode($request->getContent(), true);
 
         $student = new Student();
+
+        // instanciamos a user para obtener/comprobar si id existe
+        $student->setUser($userRepository->findOneBy(['id' => $content['user_id']]));
         $student->setName($content['name']);
         $student->setSurname($content['surname']);
-        $student->setUserEmail($content['user_email']);
-        $student->setBirthDate($content['birth_date']);
+        $student->setBirthDate(\DateTime::createFromFormat('Y-m-d', $content['birth_date']));
         $student->setPhone1($content['phone1']);
         $student->setPhone2($content['phone2']);
         $student->setLetter($content['letter']);
@@ -73,24 +77,49 @@ class StudentController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", methods={"GET"})
+     * @Route("/{$userId}", methods={"GET"})
      */
-    // public function detail($id)
-    // {
-    //     $student = $this->studentRepository->find($id);
 
-    //     return new JsonResponse([
-    //         'id' => $student->getId(),
-    //         'name' => $student->getName(),
-    //         'surname' => $student->getSurname(),
-    //         'user_email' => $student->getuserEmail(),
-    //         'birth_date' => $student->getBirthDate(),
-    //         'phone1' => $student->getPhone1(),
-    //         'phone2' => $student->getPhone2(),
-    //         'letter' => $student->getLetter(),
+    public function findByDailyStudent($userId, EntityManagerInterface $em)
+    {
+        // $dql = "
+        //     SELECT stu, i FROM App\Entity\Student stu
+        //     LEFT JOIN stu.id i
+        //     WHERE 
+        //     (stu.user_id = :userId AND TIMESTAMPDIFF(year,stu.birth_date,NOW()) < 4)
+        //     AND
+        //     (date = CURDATE() OR date IS NULL)
+        // ";
+        $dql = 'SELECT stu FROM App\Entity\Student stu WHERE stu.id = :userId';
 
-    //     ]);
-    // }
+        // $query = $this->getEntityManager()->createQuery($dql);
+        // $query = $em->createQuery($dql);
+
+        // $query->setParameters([
+        //     'daily' => $daily,
+        //     'student' => $student
+        // ]);
+        // $result = $query->execute();
+
+        $query = $em->createQuery($dql);
+        $students = $query->getResult();
+
+        $result = [];
+        foreach ($students as $student) {
+            $result[] = [
+                'id' => $student->getId(),
+                'name' => $student->getName(),
+                'surname' => $student->getSurname(),
+                'user_id' => $student->getUser(),
+                'birth_date' => $student->getBirthDate(),
+                'phone1' => $student->getPhone1(),
+                'phone2' => $student->getPhone2(),
+                'letter' => $student->getLetter(),
+            ];
+        }
+
+        return new JsonResponse($result);
+    }
 
     /**
      * @Route("/{id}", methods={"PUT"})
@@ -106,11 +135,8 @@ class StudentController extends AbstractController
         if (isset($content['surname'])) {
             $student->setSurname($content['surname']);
         }
-        if (isset($content['user_email'])) {
-            $student->setUserEmail($content['user_email']);
-        }
         if (isset($content['birth_date'])) {
-            $student->setBirthDate($content['birth_date']);
+            $student->setBirthDate(\DateTime::createFromFormat('Y-m-d', $content['birth_date']));
         }
         if (isset($content['phone1'])) {
             $student->setPhone1($content['phone1']);

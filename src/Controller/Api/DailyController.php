@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Entity\Daily;
 use App\Entity\Student;
 use App\Repository\DailyRepository;
+use App\Repository\StudentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,20 +28,21 @@ class DailyController extends AbstractController
     }
 
     /**
-     * @Route("/{userId}", methods={"GET"})
+     * @Route("", methods={"GET"})
      */
 
-    public function findByDailyStudent($userId, Daily $daily, Student $student)
+    public function findByDailyStudent($userId, Daily $daily, Student $student, EntityManagerInterface $em)
     {
         $dql = "
             SELECT stu, i FROM App\Entity\Student stu
             LEFT JOIN stu.id i
             WHERE 
-            (stu.user_email = :userId AND TIMESTAMPDIFF(year,stu.birth_date,NOW()) < 4)
+            TIMESTAMPDIFF(year,stu.birth_date,NOW()) < 4
             AND
             (date = CURDATE() OR date IS NULL)
         ";
-        $query = $this->getEntityManager()->createQuery($dql);
+
+        $query = $em->createQuery($dql);
         $query->setParameters([
             'daily' => $daily,
             'student' => $student
@@ -85,14 +87,15 @@ class DailyController extends AbstractController
     /**
      * @Route("", methods={"POST"})
      */
-    public function add(Request $request)
+    public function add(Request $request, StudentRepository $studentRepository)
     {
         $content = json_decode($request->getContent(), true);
 
         $daily = new Daily();
-        if (isset($content['student_id'])) {
-            $daily->setStudentId($content['student_id']);
-        }
+        // instanciamos a user para obtener/comprobar si id existe
+        $daily->setStudent($studentRepository->findOneBy(['id' => $content['student_id']]));
+
+
         if (isset($content['breackfast'])) {
             $daily->setBreackfast($content['breackfast']);
         }
@@ -121,7 +124,7 @@ class DailyController extends AbstractController
             $daily->setMessage($content['message']);
         }
         if (isset($content['date'])) {
-            $daily->setDate($content['date']);
+            $daily->setDate(\DateTime::createFromFormat('Y-m-d', $content['date']));
         }
         if (isset($content['absence'])) {
             $daily->setAbsence($content['absence']);
@@ -136,30 +139,6 @@ class DailyController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", methods={"GET"})
-     */
-    // public function detail($id)
-    // {
-    //     $daily = $this->dailyRepository->find($id);
-
-    //     return new JsonResponse([
-    //         'id' => $daily->getId(),
-    //         'student_id' => $daily->getStudentId(),
-    //         'breackfast' => $daily->getBreackfast(),
-    //         'lunch1' => $daily->getLunch1(),
-    //         'lunch2' => $daily->getLunch2(),
-    //         'dessert' => $daily->getDessert(),
-    //         'snack' => $daily->getSnack(),
-    //         'bottle' => $daily->getBottle(),
-    //         'diaper' => $daily->getDiaper(),
-    //         'nap' => $daily->getNap(),
-    //         'message' => $daily->getMessage(),
-    //         'date' => $daily->getDate(),
-    //         'absence' => $daily->getAbsence(),
-    //     ]);
-    // }
-
-    /**
      * @Route("/{id}", methods={"PUT"})
      */
     public function update(Request $request, $id)
@@ -167,9 +146,6 @@ class DailyController extends AbstractController
         $content = json_decode($request->getContent(), true);
         $daily = $this->dailyRepository->find($id);
 
-        if (isset($content['student_id'])) {
-            $daily->setStudentId($content['student_id']);
-        }
         if (isset($content['breackfast'])) {
             $daily->setBreackfast($content['breackfast']);
         }
@@ -198,7 +174,7 @@ class DailyController extends AbstractController
             $daily->setMessage($content['message']);
         }
         if (isset($content['date'])) {
-            $daily->setDate($content['date']);
+            $daily->setDate(\DateTime::createFromFormat('Y-m-d', $content['date']));
         }
         if (isset($content['absence'])) {
             $daily->setAbsence($content['absence']);
@@ -209,18 +185,4 @@ class DailyController extends AbstractController
             'result' => 'ok'
         ]);
     }
-
-    /**
-     * @Route("/{id}", methods={"DELETE"})
-     */
-    // public function delete($id)
-    // {
-    //     $daily = $this->dailyRepository->find($id);
-    //     $this->em->remove($daily);
-    //     $this->em->flush();
-
-    //     return new JsonResponse([
-    //         'result' => 'ok'
-    //     ]);
-    // }
 }
