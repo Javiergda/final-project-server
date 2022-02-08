@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Daily;
 use App\Entity\Student;
+use App\Repository\DailyRepository;
 use App\Repository\StudentRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -77,11 +78,18 @@ class StudentController extends AbstractController
     }
 
     /**
-     * @Route("/{$userId}", methods={"GET"})
+     * @Route("/{userId}", methods={"GET"})
      */
 
-    public function findByDailyStudent($userId, EntityManagerInterface $em)
+    public function findByDailyStudent($userId, EntityManagerInterface $em, StudentRepository $studentRepository)
     {
+
+
+
+        $dql = 'SELECT stu, dai FROM App\Entity\Student stu LEFT JOIN stu.dailies dai WHERE stu.user = :userId';
+        $query = $em->createQuery($dql)->setParameter('userId', $userId);
+        $students = $query->getResult();
+
         // $dql = "
         //     SELECT stu, i FROM App\Entity\Student stu
         //     LEFT JOIN stu.id i
@@ -90,19 +98,8 @@ class StudentController extends AbstractController
         //     AND
         //     (date = CURDATE() OR date IS NULL)
         // ";
-        $dql = 'SELECT stu FROM App\Entity\Student stu WHERE stu.id = :userId';
+        // $dql = "SELECT stu FROM App\Entity\Student ";
 
-        // $query = $this->getEntityManager()->createQuery($dql);
-        // $query = $em->createQuery($dql);
-
-        // $query->setParameters([
-        //     'daily' => $daily,
-        //     'student' => $student
-        // ]);
-        // $result = $query->execute();
-
-        $query = $em->createQuery($dql);
-        $students = $query->getResult();
 
         $result = [];
         foreach ($students as $student) {
@@ -115,6 +112,9 @@ class StudentController extends AbstractController
                 'phone1' => $student->getPhone1(),
                 'phone2' => $student->getPhone2(),
                 'letter' => $student->getLetter(),
+                'breackfast' => $daily->getBreackfast()
+
+
             ];
         }
 
