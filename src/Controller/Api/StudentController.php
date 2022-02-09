@@ -84,11 +84,9 @@ class StudentController extends AbstractController
     public function findByDailyStudent($userId, EntityManagerInterface $em, StudentRepository $studentRepository)
     {
 
-
-
-        $dql = 'SELECT stu, dai FROM App\Entity\Student stu LEFT JOIN stu.dailies dai WHERE stu.user = :userId';
-        $query = $em->createQuery($dql)->setParameter('userId', $userId);
-        $students = $query->getResult();
+        // $dql = 'SELECT stu, dai FROM App\Entity\Student stu LEFT JOIN stu.dailies dai WHERE stu.user = :userId';
+        // $query = $em->createQuery($dql)->setParameter('userId', $userId);
+        // $students = $query->getResult();
 
         // $dql = "
         //     SELECT stu, i FROM App\Entity\Student stu
@@ -101,8 +99,40 @@ class StudentController extends AbstractController
         // $dql = "SELECT stu FROM App\Entity\Student ";
 
 
+        // $student_repo = $this->getDoctrine()->getRepository((Student::class));
+
+
+        // $students = $this->studentRepository;
+        $students = $this->studentRepository->createQueryBuilder('stu')
+            ->select('stu')
+            ->leftjoin('stu.dailies', 'dai')
+            ->andWhere('stu.user = :userId')
+            ->setParameter('userId', $userId)
+
+
+            ->getQuery()
+
+            ->execute();
+
+
+
+        // var_dump($iterableResult);
+        // $result = $qb->execute();
+
+
+        // $qb = $this->createQueryBuilder('e')
+        //     ->select('e, c')
+        //     ->join('e.categoria', 'c')
+        //     ->where('e.estado = 1')
+        //     ->orderBy('e.fecha', 'DESC')
+        //     ->setMaxResults($limit)
+        // ;
+        // return $qb->getQuery()->execute();
+
+
         $result = [];
         foreach ($students as $student) {
+
             $result[] = [
                 'id' => $student->getId(),
                 'name' => $student->getName(),
@@ -112,9 +142,7 @@ class StudentController extends AbstractController
                 'phone1' => $student->getPhone1(),
                 'phone2' => $student->getPhone2(),
                 'letter' => $student->getLetter(),
-                'breackfast' => $daily->getBreackfast()
-
-
+                // 'breackfast' => $student->getBreackfast(),
             ];
         }
 

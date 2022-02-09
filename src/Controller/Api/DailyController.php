@@ -28,26 +28,51 @@ class DailyController extends AbstractController
     }
 
     /**
-     * @Route("", methods={"GET"})
+     * @Route("/{userId}", methods={"GET"})
      */
 
-    public function findByDailyStudent($userId, Daily $daily, Student $student, EntityManagerInterface $em)
+    public function findByDailyStudent($userId, EntityManagerInterface $em, Student $student)
     {
-        $dql = "
-            SELECT stu, i FROM App\Entity\Student stu
-            LEFT JOIN stu.id i
-            WHERE 
-            TIMESTAMPDIFF(year,stu.birth_date,NOW()) < 4
-            AND
-            (date = CURDATE() OR date IS NULL)
-        ";
+        // $dql = 'SELECT stu, dai FROM App\Entity\Student stu LEFT JOIN stu.dailies dai WHERE stu.user = :userId';
+        // $query = $em->createQuery($dql)->setParameter('userId', $userId);
+        // $students = $query->getResult();
 
-        $query = $em->createQuery($dql);
-        $query->setParameters([
-            'daily' => $daily,
-            'student' => $student
-        ]);
-        $result = $query->execute();
+        // $dql = "
+        //     SELECT stu, i FROM App\Entity\Student stu
+        //     LEFT JOIN stu.id i
+        //     WHERE 
+        //     (stu.user_id = :userId AND TIMESTAMPDIFF(year,stu.birth_date,NOW()) < 4)
+        //     AND
+        //     (date = CURDATE() OR date IS NULL)
+        // ";
+        // $dql = "SELECT stu FROM App\Entity\Student ";
+
+        $dailies = $this->dailyRepository->createQueryBuilder('dai')
+            ->select('dai')
+            ->leftjoin('dai.student', 'stu')
+            ->andWhere('stu.user = :userId')
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->execute();
+
+
+        $result = [];
+        foreach ($dailies as $daily) {
+
+            $result[] = [
+                'id' => $daily->getId(),
+                'id' => $daily->getConent(['id']),
+                'breackfast' => $daily->getBreackfast(),
+                'lunch1' => $daily->getlunch1(),
+                'lunch2' => $daily->getlunch2(),
+                'dessert' => $daily->getDessert(),
+                'snack' => $daily->getSnack(),
+                'bottle' => $daily->getBottle(),
+                'diaper' => $daily->getDiaper(),
+                'nap' => $daily->getNap(),
+                'message' => $daily->getMessage(),
+            ];
+        }
 
         return new JsonResponse($result);
     }
