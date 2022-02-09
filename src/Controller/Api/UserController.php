@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -49,7 +50,7 @@ class UserController extends AbstractController
     /**
      * @Route("", methods={"POST"})
      */
-    public function add(Request $request)
+    public function add(Request $request, UserPasswordHasherInterface $passwordHasher)
     {
         $content = json_decode($request->getContent(), true);
 
@@ -57,7 +58,16 @@ class UserController extends AbstractController
         $user->setName($content['name']);
         $user->setSurname($content['surname']);
         $user->setEmail($content['email']);
-        $user->setPassword($content['password']);
+
+        // hash the password
+        // encriptamos la password para guardarla en la bd
+        $plaintextPassword = $content['password'];
+        $hashedPassword = $passwordHasher->hashPassword(
+            $user,
+            $plaintextPassword
+        );
+        $user->setPassword($hashedPassword);
+        // $user->setPassword($content['password']);
         $user->setUsertype($content['user_type']);
 
         $this->em->persist($user);
