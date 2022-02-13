@@ -44,7 +44,24 @@ class UserController extends AbstractController
             ];
         }
 
-        return new JsonResponse($result);
+        return new JsonResponse($result, 200, ['Access-Control-Allow-Origin' => '*']);
+    }
+
+    /**
+     * @Route("/{email}", methods={"GET"})
+     */
+    public function detail($email)
+    {
+        // Gestiona el login de usuario que ya tiene token
+        $user = $this->userRepository->findOneBy(['email' => $email]);
+        return new JsonResponse([
+            'id' => $user->getId(),
+            // 'name' => $user->getName(),
+            // 'surname' => $user->getSurname(),
+            'email' => $user->getEmail(),
+            'user_type' => $user->getUserType(),
+            'logged' => true
+        ]);
     }
 
     /**
@@ -74,6 +91,7 @@ class UserController extends AbstractController
         $this->em->flush();
 
         return new JsonResponse([
+            'Access-Control-Allow-Origin' => '*',
             'result' => 'ok'
         ]);
     }

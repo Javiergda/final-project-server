@@ -25,4 +25,17 @@ class LoginController extends AbstractController
             'error'         => $error,
         ]);
     }
+
+    /**
+     * @Route("/api/login_check", methods={"OPTIONS"})
+     */
+    public function options()
+    {
+
+        return new Response('', 200, [
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET,POST,DELETE,PUT',
+            'Access-Control-Allow-Headers' => 'Authorization, Content-Type'
+        ]);
+    }
 }
