@@ -31,18 +31,25 @@ class StudentController extends AbstractController
     /**
      * @Route("", methods={"GET"})
      */
-    public function list(Request $request)
+    public function list(Request $request, UserRepository $userRepository)
     {
         $students = $this->studentRepository->findBy([], ['id' => 'DESC']);
 
         $result = [];
         foreach ($students as $student) {
+
+            $identificador = $userRepository->findOneBy(['id' => $student->getUser()]);
+
             $result[] = [
                 'id' => $student->getId(),
                 'name' => $student->getName(),
                 'surname' => $student->getSurname(),
-                'user_id' => $student->getUser(),
-                'birth_date' => $student->getBirthDate(),
+
+
+                'user_id' => $identificador,
+
+                // 'user_id' => $student->getUser(),
+                'birth_date' => $student->getBirthDate()->format('d-m-Y'),
                 'phone1' => $student->getPhone1(),
                 'phone2' => $student->getPhone2(),
                 'letter' => $student->getLetter(),
@@ -103,7 +110,7 @@ class StudentController extends AbstractController
 
 
         // $students = $this->studentRepository;
-        $students = $this->studentRepository->createQueryBuilder('stu')
+        $students = $this->$studentRepository->createQueryBuilder('stu')
             ->select('stu')
             ->leftjoin('stu.dailies', 'dai')
             ->andWhere('stu.user = :userId')

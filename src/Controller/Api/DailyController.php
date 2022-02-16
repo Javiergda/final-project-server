@@ -27,11 +27,24 @@ class DailyController extends AbstractController
         $this->dailyRepository = $dailyRepository;
     }
 
+
+    /**
+     * @Route("", methods={"GET"})
+     */
+    public function prueba()
+    {
+        return new JsonResponse([
+            'result' => 'ok',
+        ]);
+    }
+
+
+
     /**
      * @Route("/{userId}", methods={"GET"})
      */
 
-    public function findByDailyStudent($userId, EntityManagerInterface $em, Student $student)
+    public function findByDailyStudent($userId, DailyRepository $dailyRepository)
     {
         // $dql = 'SELECT stu, dai FROM App\Entity\Student stu LEFT JOIN stu.dailies dai WHERE stu.user = :userId';
         // $query = $em->createQuery($dql)->setParameter('userId', $userId);
@@ -47,34 +60,42 @@ class DailyController extends AbstractController
         // ";
         // $dql = "SELECT stu FROM App\Entity\Student ";
 
-        $dailies = $this->dailyRepository->createQueryBuilder('dai')
-            ->select('dai')
-            ->leftjoin('dai.student', 'stu')
-            ->andWhere('stu.user = :userId')
-            ->setParameter('userId', $userId)
-            ->getQuery()
-            ->execute();
+        // $dailies = $dailyRepository->findByExampleField($userId);
+
+        $qb = $this->$dailyRepository->createQueryBuilder('daily')
+            ->select('daily, student')
+            ->leftjoin('daily.student_id', 'student')
+            ->Where('student.user_id = :userId')
+            ->setParameter('userId', $userId);
+
+        $dailies = $qb->getQuery()->getResult();
 
 
-        $result = [];
-        foreach ($dailies as $daily) {
+        // $result = [];
+        // foreach ($dailies as $daily) {
 
-            $result[] = [
-                'id' => $daily->getId(),
-                'id' => $daily->getConent(['id']),
-                'breackfast' => $daily->getBreackfast(),
-                'lunch1' => $daily->getlunch1(),
-                'lunch2' => $daily->getlunch2(),
-                'dessert' => $daily->getDessert(),
-                'snack' => $daily->getSnack(),
-                'bottle' => $daily->getBottle(),
-                'diaper' => $daily->getDiaper(),
-                'nap' => $daily->getNap(),
-                'message' => $daily->getMessage(),
-            ];
-        }
+        //     $result[] = [
+        //         'id' => $daily->getId(),
+        //         'breackfast' => $daily->getBreackfast(),
+        //         'lunch1' => $daily->getlunch1(),
+        //         'lunch2' => $daily->getlunch2(),
+        //         'dessert' => $daily->getDessert(),
+        //         'snack' => $daily->getSnack(),
+        //         'bottle' => $daily->getBottle(),
+        //         'diaper' => $daily->getDiaper(),
+        //         'nap' => $daily->getNap(),
+        //         'message' => $daily->getMessage(),
+        //     ];
+        // }
 
-        return new JsonResponse($result);
+        return new JsonResponse(
+            [
+
+                // 'result' => 'ok',
+                // 'iduser' => $userId,
+                'dailies' => $dailies
+            ]
+        );
     }
 
     // --- join students + daily --- Para Alumnos(usuario inicia sesion):
