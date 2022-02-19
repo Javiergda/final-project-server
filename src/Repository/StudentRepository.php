@@ -19,6 +19,43 @@ class StudentRepository extends ServiceEntityRepository
         parent::__construct($registry, Student::class);
     }
 
+
+    // public function getAllStudents()
+    // {
+    //     $query =  $this->createQueryBuilder('s')
+    //         ->select('s, u')
+    //         ->Join('s.user', 'u')
+    //         ->orderBy('s.id', 'ASC')
+    //         ->getQuery()
+    //         ->getArrayResult();
+
+    //     dump($query);
+    //     return $query;
+    // }
+
+    public function getStudentWithDaily($userId)
+    {
+        $query =  $this->createQueryBuilder('s')
+            ->select('s, d')
+            ->leftJoin('s.dailies', 'd')
+            ->andWhere('s.user = :userId')
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->getArrayResult();
+
+        foreach ($query as &$user) {
+
+
+            $data = [];
+            foreach ($user['dailies'] as $daily) {
+                $data[$daily['date']->format('Y-m-d')] = $daily;
+            }
+            unset($user['dailies']);
+            $user['dailies'] = $data;
+        }
+        return $query;
+    }
+
     // /**
     //  * @return Student[] Returns an array of Student objects
     //  */

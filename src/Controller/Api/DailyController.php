@@ -41,10 +41,10 @@ class DailyController extends AbstractController
 
 
     /**
-     * @Route("/{userId}", methods={"GET"})
+     * @Route("/{student}", methods={"GET"})
      */
 
-    public function findByDailyStudent($userId, DailyRepository $dailyRepository)
+    public function findByDailyStudent(Student $student, Request $request)
     {
         // $dql = 'SELECT stu, dai FROM App\Entity\Student stu LEFT JOIN stu.dailies dai WHERE stu.user = :userId';
         // $query = $em->createQuery($dql)->setParameter('userId', $userId);
@@ -62,15 +62,26 @@ class DailyController extends AbstractController
 
         // $dailies = $dailyRepository->findByExampleField($userId);
 
-        $qb = $this->$dailyRepository->createQueryBuilder('daily')
-            ->select('daily, student')
-            ->leftjoin('daily.student_id', 'student')
-            ->Where('student.user_id = :userId')
-            ->setParameter('userId', $userId);
 
-        $dailies = $qb->getQuery()->getResult();
+        /////////////7 ESTA ESA LA ULTIMA ////////
 
 
+
+
+        // $qb = $this->createQueryBuilder('daily')
+        //     ->select('daily, student')
+        //     ->leftjoin('daily.student_id', 'student')
+        //     ->Where('student.user_id = :userId')
+        //     ->setParameter('userId', $userId);
+
+        // $dailies = $qb->getQuery()->getResult();
+
+        // dump($dailies);
+        // die;
+
+
+
+        // $dailies = $this->dailyRepository->getDailyWithStudents($userId);
         // $result = [];
         // foreach ($dailies as $daily) {
 
@@ -88,12 +99,11 @@ class DailyController extends AbstractController
         //     ];
         // }
 
+
+
         return new JsonResponse(
             [
-
-                // 'result' => 'ok',
-                // 'iduser' => $userId,
-                'dailies' => $dailies
+                'dailies' => $this->dailyRepository->getDailyByStudents($student, $request->get('date'))
             ]
         );
     }

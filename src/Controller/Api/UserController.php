@@ -72,7 +72,7 @@ class UserController extends AbstractController
         $content = json_decode($request->getContent(), true);
 
         $user = new User();
-        $user->setName($content['name']);
+        $user->setName($content['userName']);
         $user->setSurname($content['surname']);
         $user->setEmail($content['email']);
 
@@ -121,8 +121,8 @@ class UserController extends AbstractController
         $content = json_decode($request->getContent(), true);
         $user = $this->userRepository->find($id);
 
-        if (isset($content['name'])) {
-            $user->setName($content['name']);
+        if (isset($content['userName'])) {
+            $user->setName($content['userName']);
         }
         if (isset($content['surname'])) {
             $user->setSurname($content['surname']);

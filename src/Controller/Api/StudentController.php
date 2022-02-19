@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Daily;
 use App\Entity\Student;
+use App\Entity\User;
 use App\Repository\DailyRepository;
 use App\Repository\StudentRepository;
 use App\Repository\UserRepository;
@@ -31,23 +32,21 @@ class StudentController extends AbstractController
     /**
      * @Route("", methods={"GET"})
      */
-    public function list(Request $request, UserRepository $userRepository)
+    public function list(Request $request, User $user, UserRepository $userRepository)
     {
         $students = $this->studentRepository->findBy([], ['id' => 'DESC']);
+
+
 
         $result = [];
         foreach ($students as $student) {
 
-            $identificador = $userRepository->findOneBy(['id' => $student->getUser()]);
-
+            // $identificador = $userRepository->findOneBy(['id' => $student->getUser()]);
             $result[] = [
                 'id' => $student->getId(),
                 'name' => $student->getName(),
                 'surname' => $student->getSurname(),
-
-
-                'user_id' => $identificador,
-
+                // 'user_id' => $userRepository->findOneBy(['id' => $student->getUser()]),
                 // 'user_id' => $student->getUser(),
                 'birth_date' => $student->getBirthDate()->format('d-m-Y'),
                 'phone1' => $student->getPhone1(),
@@ -56,6 +55,8 @@ class StudentController extends AbstractController
             ];
         }
         return new JsonResponse($result);
+
+        // return new JsonResponse($this->studentRepository->getAllStudents());
     }
 
     /**
@@ -69,7 +70,7 @@ class StudentController extends AbstractController
 
         // instanciamos a user para obtener/comprobar si id existe
         $student->setUser($userRepository->findOneBy(['id' => $content['user_id']]));
-        $student->setName($content['name']);
+        $student->setName($content['userName']);
         $student->setSurname($content['surname']);
         $student->setBirthDate(\DateTime::createFromFormat('Y-m-d', $content['birth_date']));
         $student->setPhone1($content['phone1']);
@@ -88,72 +89,9 @@ class StudentController extends AbstractController
      * @Route("/{userId}", methods={"GET"})
      */
 
-    public function findByDailyStudent($userId, EntityManagerInterface $em, StudentRepository $studentRepository)
+    public function findByDailyStudent($userId)
     {
-
-        // $dql = 'SELECT stu, dai FROM App\Entity\Student stu LEFT JOIN stu.dailies dai WHERE stu.user = :userId';
-        // $query = $em->createQuery($dql)->setParameter('userId', $userId);
-        // $students = $query->getResult();
-
-        // $dql = "
-        //     SELECT stu, i FROM App\Entity\Student stu
-        //     LEFT JOIN stu.id i
-        //     WHERE 
-        //     (stu.user_id = :userId AND TIMESTAMPDIFF(year,stu.birth_date,NOW()) < 4)
-        //     AND
-        //     (date = CURDATE() OR date IS NULL)
-        // ";
-        // $dql = "SELECT stu FROM App\Entity\Student ";
-
-
-        // $student_repo = $this->getDoctrine()->getRepository((Student::class));
-
-
-        // $students = $this->studentRepository;
-        $students = $this->$studentRepository->createQueryBuilder('stu')
-            ->select('stu')
-            ->leftjoin('stu.dailies', 'dai')
-            ->andWhere('stu.user = :userId')
-            ->setParameter('userId', $userId)
-
-
-            ->getQuery()
-
-            ->execute();
-
-
-
-        // var_dump($iterableResult);
-        // $result = $qb->execute();
-
-
-        // $qb = $this->createQueryBuilder('e')
-        //     ->select('e, c')
-        //     ->join('e.categoria', 'c')
-        //     ->where('e.estado = 1')
-        //     ->orderBy('e.fecha', 'DESC')
-        //     ->setMaxResults($limit)
-        // ;
-        // return $qb->getQuery()->execute();
-
-
-        $result = [];
-        foreach ($students as $student) {
-
-            $result[] = [
-                'id' => $student->getId(),
-                'name' => $student->getName(),
-                'surname' => $student->getSurname(),
-                'user_id' => $student->getUser(),
-                'birth_date' => $student->getBirthDate(),
-                'phone1' => $student->getPhone1(),
-                'phone2' => $student->getPhone2(),
-                'letter' => $student->getLetter(),
-                // 'breackfast' => $student->getBreackfast(),
-            ];
-        }
-
-        return new JsonResponse($result);
+        return new JsonResponse($this->studentRepository->getStudentWithDaily($userId));
     }
 
     /**
@@ -164,8 +102,8 @@ class StudentController extends AbstractController
         $content = json_decode($request->getContent(), true);
         $student = $this->studentRepository->find($id);
 
-        if (isset($content['name'])) {
-            $student->setName($content['name']);
+        if (isset($content['userName'])) {
+            $student->setName($content['userName']);
         }
         if (isset($content['surname'])) {
             $student->setSurname($content['surname']);
@@ -195,11 +133,16 @@ class StudentController extends AbstractController
     public function delete($id)
     {
         $student = $this->studentRepository->find($id);
-        $this->em->remove($student);
-        $this->em->flush();
+        if ($student) {
+            $this->em->remove($student);
+            $this->em->flush();
+            $restult = 'usuario borrado';
+        } else {
+            $restult = 'usuario no encontrado';
+        }
 
         return new JsonResponse([
-            'result' => 'ok'
+            'result' => $restult
         ]);
     }
 }
