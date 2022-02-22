@@ -32,7 +32,7 @@ class StudentController extends AbstractController
     /**
      * @Route("", methods={"GET"})
      */
-    public function list(Request $request, User $user, UserRepository $userRepository)
+    public function list()
     {
         $students = $this->studentRepository->findBy([], ['id' => 'DESC']);
 
@@ -47,7 +47,8 @@ class StudentController extends AbstractController
                 'name' => $student->getName(),
                 'surname' => $student->getSurname(),
                 // 'user_id' => $userRepository->findOneBy(['id' => $student->getUser()]),
-                // 'user_id' => $student->getUser(),
+                'user_id' => $student->getUser()->getId(),
+                'user_name' => $student->getUser()->getName(),
                 'birth_date' => $student->getBirthDate()->format('d-m-Y'),
                 'phone1' => $student->getPhone1(),
                 'phone2' => $student->getPhone2(),
@@ -85,6 +86,8 @@ class StudentController extends AbstractController
         ]);
     }
 
+    // poner en ruta /calendar
+
     /**
      * @Route("/{userId}", methods={"GET"})
      */
@@ -92,6 +95,16 @@ class StudentController extends AbstractController
     public function findByDailyStudent($userId)
     {
         return new JsonResponse($this->studentRepository->getStudentWithDaily($userId));
+    }
+
+    /**
+     * @Route("/current/{date}", methods={"GET"})
+     */
+
+    public function findByDailyStudentByDate($date)
+    {
+
+        return new JsonResponse($this->studentRepository->getStudentWithDailyByDate($date));
     }
 
     /**

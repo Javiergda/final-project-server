@@ -56,6 +56,24 @@ class StudentRepository extends ServiceEntityRepository
         return $query;
     }
 
+    public function getStudentWithDailyByDate($date)
+    {
+        $query =  $this->createQueryBuilder('s')
+            ->select('s, d')
+            ->leftJoin('s.dailies', 'd', 'WITH', $this->createQueryBuilder('sd')->expr()->eq('d.date', ':date'))
+            // ->andWhere('d.date = :date')
+            ->setParameter('date', $date)
+            ->getQuery()
+            ->getArrayResult();
+
+        foreach ($query as &$student) {
+            $student['birth_date'] = $student['birth_date']->format('Y-m-d');
+        }
+
+        return $query;
+    }
+
+
     // /**
     //  * @return Student[] Returns an array of Student objects
     //  */
