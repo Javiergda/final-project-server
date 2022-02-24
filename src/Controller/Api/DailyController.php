@@ -6,6 +6,7 @@ use App\Entity\Daily;
 use App\Entity\Student;
 use App\Repository\DailyRepository;
 use App\Repository\StudentRepository;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -46,41 +47,6 @@ class DailyController extends AbstractController
 
     public function findByDailyStudent(Student $student, Request $request)
     {
-        // $dql = 'SELECT stu, dai FROM App\Entity\Student stu LEFT JOIN stu.dailies dai WHERE stu.user = :userId';
-        // $query = $em->createQuery($dql)->setParameter('userId', $userId);
-        // $students = $query->getResult();
-
-        // $dql = "
-        //     SELECT stu, i FROM App\Entity\Student stu
-        //     LEFT JOIN stu.id i
-        //     WHERE 
-        //     (stu.user_id = :userId AND TIMESTAMPDIFF(year,stu.birth_date,NOW()) < 4)
-        //     AND
-        //     (date = CURDATE() OR date IS NULL)
-        // ";
-        // $dql = "SELECT stu FROM App\Entity\Student ";
-
-        // $dailies = $dailyRepository->findByExampleField($userId);
-
-
-        /////////////7 ESTA ESA LA ULTIMA ////////
-
-
-
-
-        // $qb = $this->createQueryBuilder('daily')
-        //     ->select('daily, student')
-        //     ->leftjoin('daily.student_id', 'student')
-        //     ->Where('student.user_id = :userId')
-        //     ->setParameter('userId', $userId);
-
-        // $dailies = $qb->getQuery()->getResult();
-
-        // dump($dailies);
-        // die;
-
-
-
         // $dailies = $this->dailyRepository->getDailyWithStudents($userId);
         // $result = [];
         // foreach ($dailies as $daily) {
@@ -99,27 +65,12 @@ class DailyController extends AbstractController
         //     ];
         // }
 
-
-
         return new JsonResponse(
             [
                 'dailies' => $this->dailyRepository->getDailyByStudents($student, $request->get('date'))
             ]
         );
     }
-
-    // --- join students + daily --- Para Alumnos(usuario inicia sesion):
-
-    // -> igual que Profesores pero se filtra el email tutor tambien
-
-    // SELECT * FROM students
-    // LEFT JOIN daily ON daily.id_student=students.id_student
-    // WHERE 
-    // (students.email_user='usuario1@gmail.com' AND TIMESTAMPDIFF(year,birth_date,NOW()) < 4) 
-    // AND 
-    // (date = CURDATE() OR date IS NULL);
-
-
 
     // public function list(Request $request)
     // {
@@ -195,11 +146,85 @@ class DailyController extends AbstractController
     }
 
     /**
+     * @Route("/{student}", methods={"POST"})
+     */
+    public function addOrUpdate(Request $request, Student $student)
+    {
+        $content = json_decode($request->getContent(), true);
+
+        // dump($content);
+        // die;
+        // student_id y dia de hoy
+
+        $daily = $this->dailyRepository->findOneBy(['student' => $student->getId(), 'date' => new DateTime()]);
+
+        if ($daily) {
+            $met = 'update';
+        } else {
+            $met = 'insert';
+        }
+
+        if ($met == 'insert') {
+            $daily = new Daily();
+        }
+
+        if (isset($content['breackfast'])) {
+            $daily->setBreackfast($content['breackfast']);
+        }
+        if (isset($content['lunch1'])) {
+            $daily->setLunch1($content['lunch1']);
+        }
+        if (isset($content['lunch2'])) {
+            $daily->setLunch2($content['lunch2']);
+        }
+        if (isset($content['dessert'])) {
+            $daily->setDessert($content['dessert']);
+        }
+        if (isset($content['snack'])) {
+            $daily->setSnack($content['snack']);
+        }
+        if (isset($content['bottle'])) {
+            $daily->setBottle($content['bottle']);
+        }
+        if (isset($content['diaper'])) {
+            $daily->setDiaper($content['diaper']);
+        }
+        if (isset($content['nap'])) {
+            $daily->setNap($content['nap']);
+        }
+        if (isset($content['message'])) {
+            $daily->setMessage($content['message']);
+        }
+
+        if ($met == 'insert') {
+            $daily->setDate(new DateTime());
+        }
+
+
+
+        if (isset($content['absence'])) {
+            $daily->setAbsence($content['absence']);
+        }
+
+        if ($met == 'insert') {
+            $daily->setStudent($student);
+            $this->em->persist($daily);
+        }
+        $this->em->flush();
+
+        return new JsonResponse([
+            'result' => 'ok'
+        ]);
+    }
+
+    /**
      * @Route("/{id}", methods={"PUT"})
      */
     public function update(Request $request, $id)
     {
         $content = json_decode($request->getContent(), true);
+
+
         $daily = $this->dailyRepository->find($id);
 
         if (isset($content['breackfast'])) {
