@@ -19,20 +19,6 @@ class StudentRepository extends ServiceEntityRepository
         parent::__construct($registry, Student::class);
     }
 
-
-    // public function getAllStudents()
-    // {
-    //     $query =  $this->createQueryBuilder('s')
-    //         ->select('s, u')
-    //         ->Join('s.user', 'u')
-    //         ->orderBy('s.id', 'ASC')
-    //         ->getQuery()
-    //         ->getArrayResult();
-
-    //     dump($query);
-    //     return $query;
-    // }
-
     public function getStudentWithDaily($userId)
     {
         $query =  $this->createQueryBuilder('s')
@@ -44,8 +30,6 @@ class StudentRepository extends ServiceEntityRepository
             ->getArrayResult();
 
         foreach ($query as &$user) {
-
-
             $data = [];
             foreach ($user['dailies'] as $daily) {
                 $data[$daily['date']->format('Y-m-d')] = $daily;
@@ -61,7 +45,6 @@ class StudentRepository extends ServiceEntityRepository
         $query =  $this->createQueryBuilder('s')
             ->select('s, d')
             ->leftJoin('s.dailies', 'd', 'WITH', $this->createQueryBuilder('sd')->expr()->eq('d.date', ':date'))
-            // ->andWhere('d.date = :date')
             ->setParameter('date', $date)
             ->getQuery()
             ->getArrayResult();
@@ -73,32 +56,7 @@ class StudentRepository extends ServiceEntityRepository
         return $query;
     }
 
-
     // /**
     //  * @return Student[] Returns an array of Student objects
     //  */
-
-    // public function findByExampleField($value)
-    // {
-    //     return $this->createQueryBuilder('s')
-    //         ->andWhere('s.id = :val')
-    //         ->setParameter('val', $value)
-    //         ->orderBy('s.id', 'ASC')
-    //         ->setMaxResults(10)
-    //         ->getQuery()
-    //         ->getResult();
-    // }
-
-
-    /*
-    public function findOneBySomeField($value): ?Student
-    {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

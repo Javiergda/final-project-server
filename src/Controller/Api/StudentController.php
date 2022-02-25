@@ -19,7 +19,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class StudentController extends AbstractController
 {
-
     private $em;
     private $studentRepository;
 
@@ -36,28 +35,20 @@ class StudentController extends AbstractController
     {
         $students = $this->studentRepository->findBy([], ['id' => 'DESC']);
 
-
-
         $result = [];
         foreach ($students as $student) {
-
-            // $identificador = $userRepository->findOneBy(['id' => $student->getUser()]);
             $result[] = [
                 'id' => $student->getId(),
                 'name' => $student->getName(),
                 'surname' => $student->getSurname(),
-                // 'user_id' => $userRepository->findOneBy(['id' => $student->getUser()]),
                 'user_id' => $student->getUser()->getId(),
-                'user_name' => $student->getUser()->getName(),
-                'birth_date' => $student->getBirthDate()->format('d-m-Y'),
+                'birth_date' => $student->getBirthDate()->format('Y-m-d'),
                 'phone1' => $student->getPhone1(),
                 'phone2' => $student->getPhone2(),
                 'letter' => $student->getLetter(),
             ];
         }
         return new JsonResponse($result);
-
-        // return new JsonResponse($this->studentRepository->getAllStudents());
     }
 
     /**
@@ -66,7 +57,6 @@ class StudentController extends AbstractController
     public function add(Request $request, UserRepository $userRepository)
     {
         $content = json_decode($request->getContent(), true);
-
         $student = new Student();
 
         // instanciamos a user para obtener/comprobar si id existe
@@ -86,12 +76,9 @@ class StudentController extends AbstractController
         ]);
     }
 
-    // poner en ruta /calendar
-
     /**
      * @Route("/{userId}", methods={"GET"})
      */
-
     public function findByDailyStudent($userId)
     {
         return new JsonResponse($this->studentRepository->getStudentWithDaily($userId));
@@ -100,10 +87,8 @@ class StudentController extends AbstractController
     /**
      * @Route("/current/{date}", methods={"GET"})
      */
-
     public function findByDailyStudentByDate($date)
     {
-
         return new JsonResponse($this->studentRepository->getStudentWithDailyByDate($date));
     }
 
@@ -131,7 +116,7 @@ class StudentController extends AbstractController
             $student->setPhone2($content['phone2']);
         }
         if (isset($content['letter'])) {
-            $student->setPhone2($content['letter']);
+            $student->setLetter($content['letter']);
         }
         $this->em->flush();
 
@@ -146,16 +131,12 @@ class StudentController extends AbstractController
     public function delete($id)
     {
         $student = $this->studentRepository->find($id);
-        if ($student) {
-            $this->em->remove($student);
-            $this->em->flush();
-            $restult = 'usuario borrado';
-        } else {
-            $restult = 'usuario no encontrado';
-        }
+
+        $this->em->remove($student);
+        $this->em->flush();
 
         return new JsonResponse([
-            'result' => $restult
+            'result' => 'ok'
         ]);
     }
 }

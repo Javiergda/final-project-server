@@ -16,7 +16,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class UserController extends AbstractController
 {
-
     private $em;
     private $userRepository;
 
@@ -43,7 +42,6 @@ class UserController extends AbstractController
                 'user_type' => $user->getUserType(),
             ];
         }
-
         return new JsonResponse($result, 200, ['Access-Control-Allow-Origin' => '*']);
     }
 
@@ -56,8 +54,6 @@ class UserController extends AbstractController
         $user = $this->userRepository->findOneBy(['email' => $email]);
         return new JsonResponse([
             'id' => $user->getId(),
-            // 'name' => $user->getName(),
-            // 'surname' => $user->getSurname(),
             'email' => $user->getEmail(),
             'user_type' => $user->getUserType(),
             'logged' => true
@@ -84,34 +80,15 @@ class UserController extends AbstractController
             $plaintextPassword
         );
         $user->setPassword($hashedPassword);
-        // $user->setPassword($content['password']);
         $user->setUsertype($content['user_type']);
 
         $this->em->persist($user);
         $this->em->flush();
 
         return new JsonResponse([
-            'Access-Control-Allow-Origin' => '*',
             'result' => 'ok'
         ]);
     }
-
-    /**
-     * @Route("/{id}", methods={"GET"})
-     */
-
-    // public function detail($id)
-    // {
-    //     $user = $this->userRepository->find($id);
-
-    //     return new JsonResponse([
-    //         'id' => $user->getId(),
-    //         'name' => $user->getName(),
-    //         'surname' => $user->getSurname(),
-    //         'email' => $user->getEmail(),
-    //         'user_type' => $user->getUsertype()
-    //     ]);
-    // }
 
     /**
      * @Route("/{id}", methods={"PUT"})

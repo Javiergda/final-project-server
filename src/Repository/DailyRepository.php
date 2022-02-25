@@ -23,39 +23,12 @@ class DailyRepository extends ServiceEntityRepository
     // /**
     //  * @return Daily[] Returns an array of Daily objects
     //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('d')
-            ->andWhere('d.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('d.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Daily
-    {
-        return $this->createQueryBuilder('d')
-            ->andWhere('d.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
-
 
     public function getDailyByStudents(Student $student, $filter = null)
     {
         $qb = $this->createQueryBuilder('d')
             ->where('d.student = :student')
             ->setParameter('student', $student);
-
 
         $dailies = $qb->getQuery()->execute();
         $data = [];

@@ -18,7 +18,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class DailyController extends AbstractController
 {
-
     private $em;
     private $dailyRepository;
 
@@ -28,68 +27,17 @@ class DailyController extends AbstractController
         $this->dailyRepository = $dailyRepository;
     }
 
-
-    /**
-     * @Route("", methods={"GET"})
-     */
-    public function prueba()
-    {
-        return new JsonResponse([
-            'result' => 'ok',
-        ]);
-    }
-
-
-
     /**
      * @Route("/{student}", methods={"GET"})
      */
-
     public function findByDailyStudent(Student $student, Request $request)
     {
-        // $dailies = $this->dailyRepository->getDailyWithStudents($userId);
-        // $result = [];
-        // foreach ($dailies as $daily) {
-
-        //     $result[] = [
-        //         'id' => $daily->getId(),
-        //         'breackfast' => $daily->getBreackfast(),
-        //         'lunch1' => $daily->getlunch1(),
-        //         'lunch2' => $daily->getlunch2(),
-        //         'dessert' => $daily->getDessert(),
-        //         'snack' => $daily->getSnack(),
-        //         'bottle' => $daily->getBottle(),
-        //         'diaper' => $daily->getDiaper(),
-        //         'nap' => $daily->getNap(),
-        //         'message' => $daily->getMessage(),
-        //     ];
-        // }
-
         return new JsonResponse(
             [
                 'dailies' => $this->dailyRepository->getDailyByStudents($student, $request->get('date'))
             ]
         );
     }
-
-    // public function list(Request $request)
-    // {
-    //     $perfil = $request->query->get('perfil'); // HAY QUE MODIFICARLO --------------------------
-    //     if ($perfil == null) {
-    //         $usuarios = $this->usuarioRepository->findBy([], ['nombre' => 'ASC']);
-    //     } else {
-    //         $usuarios = $this->usuarioRepository->findBy(['perfil' => $perfil], ['nombre' => 'ASC']);
-    //     }
-    //     $resultado = [];
-    //     foreach ($usuarios as $usuario) {
-    //         $resultado[] = [
-    //             'id' => $usuario->getId(),
-    //             'email' => $usuario->getEmail(),
-    //             'nombre' => $usuario->getNombre()
-    //         ];
-    //     }
-    //     return new JsonResponse($resultado);
-    // }
 
     /**
      * @Route("", methods={"POST"})
@@ -101,7 +49,6 @@ class DailyController extends AbstractController
         $daily = new Daily();
         // instanciamos a user para obtener/comprobar si id existe
         $daily->setStudent($studentRepository->findOneBy(['id' => $content['student_id']]));
-
 
         if (isset($content['breackfast'])) {
             $daily->setBreackfast($content['breackfast']);
@@ -151,11 +98,6 @@ class DailyController extends AbstractController
     public function addOrUpdate(Request $request, Student $student)
     {
         $content = json_decode($request->getContent(), true);
-
-        // dump($content);
-        // die;
-        // student_id y dia de hoy
-
         $daily = $this->dailyRepository->findOneBy(['student' => $student->getId(), 'date' => new DateTime()]);
 
         if ($daily) {
@@ -195,21 +137,17 @@ class DailyController extends AbstractController
         if (isset($content['message'])) {
             $daily->setMessage($content['message']);
         }
-
         if ($met == 'insert') {
             $daily->setDate(new DateTime());
         }
-
-
-
         if (isset($content['absence'])) {
             $daily->setAbsence($content['absence']);
         }
-
         if ($met == 'insert') {
             $daily->setStudent($student);
             $this->em->persist($daily);
         }
+
         $this->em->flush();
 
         return new JsonResponse([
@@ -223,8 +161,6 @@ class DailyController extends AbstractController
     public function update(Request $request, $id)
     {
         $content = json_decode($request->getContent(), true);
-
-
         $daily = $this->dailyRepository->find($id);
 
         if (isset($content['breackfast'])) {
